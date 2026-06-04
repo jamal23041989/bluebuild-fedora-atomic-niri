@@ -41,7 +41,7 @@ jobs:
           pr_event_number: ${{ github.event.number }}
           push: ${{ github.event_name != 'pull_request' }}
 
-      # 3. Генерируем ISO отдельным чистым шагом в режиме Bootc (Fedora 44)
+      # 3. Генерируем ISO для классического rpm-ostree (Fedora 44 / Rawhide)
       - name: Generate ISO
         if: github.event_name != 'pull_request'
         run: |
@@ -51,9 +51,9 @@ jobs:
             -v .:/output \
             ghcr.io/jasonn3/build-container-installer:v1.4.0 \
             IMAGE=ghcr.io/${{ github.repository_owner }}/bluebuild-fedora-atomic-niri \
-            VERSION=44 \
+            VERSION=rawhide \
             ISO_NAME=fedora-niri.iso \
-            BOOTC=1
+            VARIANT=Minimal
 
       # 4. Принудительно выгружаем готовый ISO в артефакты GitHub
       - name: Upload ISO Artifact
