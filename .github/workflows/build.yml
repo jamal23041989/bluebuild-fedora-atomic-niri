@@ -1,7 +1,7 @@
 name: Build and Validate Fedora Atomic Niri
 on:
   schedule:
-    - cron: "0 0 * * 1" # Автоматическая сборка каждый понедельник в 00:00 (для обновления пакетов)
+    - cron: "0 0 * * 1"
   push:
     branches:
       - main
@@ -12,7 +12,7 @@ on:
   pull_request:
     branches:
       - main
-  workflow_dispatch: # Позволяет запустить сборку вручную одной кнопкой в веб-интерфейсе GitHub
+  workflow_dispatch:
 
 env:
   IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
@@ -26,30 +26,41 @@ jobs:
       packages: write
       id-token: write
     steps:
-      # 1. Клонируем твой репозиторий со всей структурой папок
+      # 1. Клонируем репозиторий
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Запускаем официальный инструмент сборки BlueBuild
+      # 2. Собираем контейнер (без проблемных параметров ISO)
       - name: Build Image
+        id: build
         uses: blue-build/github-action@v1
         with:
-          # Файл должен лежать по пути recipes/recipe.yml
-          # Экшен сам ищет его внутри папки recipes/, поэтому пишем просто имя файла
           recipe: "recipe.yml"
-
-          # Токен для загрузки готового образа в твой репозиторий контейнеров (GHCR)
           registry_token: ${{ github.token }}
-
-          # Тот самый секретный ключ подписи, который ты добавил в настройки репозитория
           cosign_private_key: ${{ secrets.SIGNING_SECRET }}
-
-          # Номер пулл-реквеста для создания временных тестовых тегов
           pr_event_number: ${{ github.event.number }}
-
-          # Если это проверка Pull Request — только тестируем сборку (push: false)
-          # Если это коммит в main, расписание или запуск вручную — пушим образ в реестр (push: true)
           push: ${{ github.event_name != 'pull_request' }}
 
-          iso_generate: true
-          iso_arch: x86_64
+      # 3. Генерируем ISO отдельным чистым шагом через родной CLI
+      - name: Generate ISO
+        if: github.event_name != 'pull_request'
+        run: |
+          sudo apt-get update && sudo apt-get install -y podman
+          sudo podman run --privileged --rm \
+            -v ./config:/config \
+            -v .:/output \
+            ghcr.io/jasonn3/build-container-installer:v1.4.0 \
+            IMAGE=ghcr.io/${{ github.repository_owner }}/bluebuild-fedora-atomic-niri \
+            VERSION=44 \
+            ISO_NAME=fedora-niri.iso \
+            VARIANT=Minimal
+
+      # 4. Принудительно выгружаем готовый ISO в артефакты GitHub
+      - name: Upload ISO Artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: fedora-niri-iso
+          path: ./fedora-niri.iso
+          if-no-files-found: error
+          retention-days: 7
