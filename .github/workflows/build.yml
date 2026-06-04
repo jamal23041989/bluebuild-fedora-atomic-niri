@@ -41,7 +41,7 @@ jobs:
           pr_event_number: ${{ github.event.number }}
           push: ${{ github.event_name != 'pull_request' }}
 
-      # 3. Генерируем ISO для классического rpm-ostree (Fedora 44 / Rawhide)
+      # 3. Генерируем ISO (обманываем сборщик версией 43, оставляя твой образ 44)
       - name: Generate ISO
         if: github.event_name != 'pull_request'
         run: |
@@ -51,7 +51,7 @@ jobs:
             -v .:/output \
             ghcr.io/jasonn3/build-container-installer:v1.4.0 \
             IMAGE=ghcr.io/${{ github.repository_owner }}/bluebuild-fedora-atomic-niri \
-            VERSION=rawhide \
+            VERSION=43 \
             ISO_NAME=fedora-niri.iso \
             VARIANT=Minimal
 
