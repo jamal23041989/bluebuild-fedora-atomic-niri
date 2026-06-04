@@ -1,0 +1,44 @@
+name: Build and Validate Fedora Atomic Niri
+on:
+  schedule:
+    - cron: "0 0 * * 1" # Сборка каждый понедельник в 00:00 (чтобы образ всегда имел свежие апдейты Fedora)
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "README.md"
+      - ".gitignore"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch: # Позволяет запустить сборку и валидацию вручную кнопкой в интерфейсе GitHub
+
+env:
+  IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+
+jobs:
+  bluebuild:
+    name: Build and Validate Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      # 1. Клонируем репозиторий с рецептом и конфигами
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Запускаем сборку через официальный экшен BlueBuild
+      - name: Build Image
+        uses: blue-build/github-action@v1
+        with:
+          recipe: "recipe.yml"
+          cosign_private_key: ${{ secrets.SIGNING_SECRET }}
+          registry_token: ${{ github.token }}
+          pr_event_number: ${{ github.event.number }}
+
+          # КЛЮЧЕВОЙ МОМЕНТ ВАЛИДАЦИИ:
+          # Если это Pull Request — только тестируем сборку (push: false).
+          # Если это коммит в main или запуск по кнопке/расписанию — пушим в GHCR.
+          push: ${{ github.event_name != 'pull_request' }}

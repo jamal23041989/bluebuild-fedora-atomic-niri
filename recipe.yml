@@ -1,0 +1,115 @@
+# recipe.yml
+name: fedora-atomic-niri
+description: Минималистичный атомарный образ с фрейм-менеджером Niri, uwsm и greetd.
+base-image: ghcr.io/ublue-os/minimal
+image-version: 44 # Используем актуальную версию Fedora для 2026 года
+
+modules:
+  # 1. Копирование конфигурационных файлов из папки config/ в файловую систему образа
+  - type: files
+
+  # 2. Установка всех необходимых системных RPM-пакетов
+  - type: packages
+    install:
+      # Драйверы, Графика и Аппаратное ускорение AMD RX 6600
+      - mesa-dri-drivers
+      - vulkan-radeon
+      - libva-utils
+
+      # Базовое окружение Niri + Запуск
+      - niri
+      - uwsm
+      - xwayland-satellite
+      - waybar
+      - fuzzel
+      - mako
+      - swaybg
+      - hyprlock
+      - hypridle
+      - alacritty
+      - wl-clipboard
+      - adwaita-cursor-theme
+
+      # Экран логина
+      - greetd
+      - tuigreet
+
+      # Интеграция и Порталы
+      - xdg-desktop-portal
+      - xdg-desktop-portal-gnome
+      - xdg-desktop-portal-gtk
+
+      # Система, Звук и Авторизация
+      - NetworkManager
+      - NetworkManager-tui
+      - iwd
+      - firewalld
+      - bluez
+      - bluez-utils
+      - pipewire
+      - pipewire-pulse
+      - wireplumber
+      - pavucontrol
+      - udiskie
+      - udisks2
+      - upower
+      - brightnessctl
+      - lxqt-policykit
+      - gnome-keyring
+      - libsecret
+
+      # Контейнеры и Песочницы
+      - podman
+      - podman-docker
+      - distrobox
+      - flatpak
+
+      # CLI-инструменты инфраструктуры
+      - git
+      - zsh
+      - tmux
+      - neovim
+      - bat
+      - eza
+      - fzf
+      - ripgrep
+      - zoxide
+      - btop
+      - wget
+      - zip
+      - unzip
+      - fd-find
+      - git-delta
+      - pass
+
+      # Просмотрщики медиа и документов для Yazi
+      - yazi
+      - mpv
+      - imv
+      - zathura
+      - zathura-pdf-mupdf
+      - ffmpegthumbnailer
+      - imagemagick
+      - p7zip
+      - unar
+      - poppler-utils
+
+      # Шрифты
+      - google-noto-sans-fonts
+      - google-noto-color-emoji-fonts
+      - jetbrains-mono-fonts
+
+  # 3. Активация необходимых системных служб Systemd
+  - type: systemd
+    system:
+      enabled:
+        - firewalld
+        - NetworkManager
+        - iwd
+        - greetd
+
+  # 4. Автоматическое подключение репозитория Flathub
+  - type: flatpak
+    remotes:
+      - name: flathub
+        url: https://dl.flathub.org/repo/flathub.flatpakrepo

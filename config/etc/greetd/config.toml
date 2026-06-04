@@ -1,0 +1,8 @@
+[default_session]
+# Запускаем tuigreet. При успешном входе он передает управление в uwsm для старта Niri
+command = "tuigreet --time --remember --remember-user --cmd 'uwsm start niri.desktop'"
+user = "greeter"
+
+[session]
+initial_session = ""
+default_session = "default_session"
