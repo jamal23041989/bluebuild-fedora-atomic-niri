@@ -41,7 +41,7 @@ jobs:
           pr_event_number: ${{ github.event.number }}
           push: ${{ github.event_name != 'pull_request' }}
 
-      # 3. Генерируем ISO отдельным чистым шагом через родной CLI
+      # 3. Генерируем ISO отдельным чистым шагом в режиме Bootc (Fedora 44)
       - name: Generate ISO
         if: github.event_name != 'pull_request'
         run: |
@@ -53,7 +53,7 @@ jobs:
             IMAGE=ghcr.io/${{ github.repository_owner }}/bluebuild-fedora-atomic-niri \
             VERSION=44 \
             ISO_NAME=fedora-niri.iso \
-            VARIANT=Minimal
+            BOOTC=1
 
       # 4. Принудительно выгружаем готовый ISO в артефакты GitHub
       - name: Upload ISO Artifact
