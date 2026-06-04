@@ -44,12 +44,12 @@ jobs:
           # Тот самый секретный ключ подписи, который ты добавил в настройки репозитория
           cosign_private_key: ${{ secrets.SIGNING_SECRET }}
 
-          generate_iso: true
-          iso_name: fedora-niri.iso
-
           # Номер пулл-реквеста для создания временных тестовых тегов
           pr_event_number: ${{ github.event.number }}
 
           # Если это проверка Pull Request — только тестируем сборку (push: false)
           # Если это коммит в main, расписание или запуск вручную — пушим образ в реестр (push: true)
           push: ${{ github.event_name != 'pull_request' }}
+
+          iso_generate: true
+          iso_arch: x86_64
