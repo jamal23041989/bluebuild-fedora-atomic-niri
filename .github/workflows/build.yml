@@ -1,17 +1,18 @@
 name: Build and Validate Fedora Atomic Niri
 on:
   schedule:
-    - cron: "0 0 * * 1" # Сборка каждый понедельник в 00:00 (чтобы образ всегда имел свежие апдейты Fedora)
+    - cron: "0 0 * * 1" # Автоматическая сборка каждый понедельник в 00:00 (для обновления пакетов)
   push:
     branches:
       - main
     paths-ignore:
       - "README.md"
       - ".gitignore"
+      - "cosign.pub"
   pull_request:
     branches:
       - main
-  workflow_dispatch: # Позволяет запустить сборку и валидацию вручную кнопкой в интерфейсе GitHub
+  workflow_dispatch: # Позволяет запустить сборку вручную одной кнопкой в веб-интерфейсе GitHub
 
 env:
   IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
@@ -25,20 +26,27 @@ jobs:
       packages: write
       id-token: write
     steps:
-      # 1. Клонируем репозиторий с рецептом и конфигами
+      # 1. Клонируем твой репозиторий со всей структурой папок
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Запускаем сборку через официальный экшен BlueBuild
+      # 2. Запускаем официальный инструмент сборки BlueBuild
       - name: Build Image
         uses: blue-build/github-action@v1
         with:
+          # Файл должен лежать по пути recipes/recipe.yml
+          # Экшен сам ищет его внутри папки recipes/, поэтому пишем просто имя файла
           recipe: "recipe.yml"
-          cosign_private_key: ${{ secrets.SIGNING_SECRET }}
+
+          # Токен для загрузки готового образа в твой репозиторий контейнеров (GHCR)
           registry_token: ${{ github.token }}
+
+          # Тот самый секретный ключ подписи, который ты добавил в настройки репозитория
+          cosign_private_key: ${{ secrets.SIGNING_SECRET }}
+
+          # Номер пулл-реквеста для создания временных тестовых тегов
           pr_event_number: ${{ github.event.number }}
 
-          # КЛЮЧЕВОЙ МОМЕНТ ВАЛИДАЦИИ:
-          # Если это Pull Request — только тестируем сборку (push: false).
-          # Если это коммит в main или запуск по кнопке/расписанию — пушим в GHCR.
+          # Если это проверка Pull Request — только тестируем сборку (push: false)
+          # Если это коммит в main, расписание или запуск вручную — пушим образ в реестр (push: true)
           push: ${{ github.event_name != 'pull_request' }}
