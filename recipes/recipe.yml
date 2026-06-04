@@ -5,45 +5,40 @@ base-image: ghcr.io/blue-build/base-images/fedora-base
 image-version: 44
 
 modules:
+  # 1. Сначала активируем репозитории COPR для утилит Hyprland и Yazi
+  - type: dnf
+    repos:
+      copr:
+        - solopasha/hyprland # Здесь лежат hyprlock, hypridle и uwsm
+        - lihaohong/yazi # Здесь лежит актуальный yazi
+
+  # 2. Теперь запускаем установку пакетов с правильными именами
   - type: rpm-ostree
     install:
-      # Драйверы, Графика и Аппаратное ускорение AMD RX 6600
       - mesa-dri-drivers
-      - vulkan-radeon
+      - mesa-vulkan-drivers
       - libva-utils
-
-      # Базовое окружение Niri + Запуск
       - niri
-      - uwsm
       - xwayland-satellite
       - waybar
       - fuzzel
       - mako
       - swaybg
-      - hyprlock
-      - hypridle
       - alacritty
       - wl-clipboard
       - adwaita-cursor-theme
-
-      # Экран логина
       - greetd
       - tuigreet
-
-      # Интеграция и Порталы
       - xdg-desktop-portal
       - xdg-desktop-portal-gnome
       - xdg-desktop-portal-gtk
-
-      # Система, Звук и Авторизация
       - NetworkManager
       - NetworkManager-tui
       - iwd
       - firewalld
-      - bluez
-      - bluez-utils
+      - bluez # Заменяет bluez-utils
       - pipewire
-      - pipewire-pulse
+      - pipewire-pulseaudio # Исправлено с pipewire-pulse
       - wireplumber
       - pavucontrol
       - udiskie
@@ -53,14 +48,10 @@ modules:
       - lxqt-policykit
       - gnome-keyring
       - libsecret
-
-      # Контейнеры и Песочницы
       - podman
       - podman-docker
       - distrobox
       - flatpak
-
-      # CLI-инструменты инфраструктуры
       - git
       - zsh
       - tmux
@@ -77,24 +68,23 @@ modules:
       - fd-find
       - git-delta
       - pass
-
-      # Просмотрщики медиа и документов для Yazi
-      - yazi
       - mpv
       - imv
       - zathura
       - zathura-pdf-mupdf
       - ffmpegthumbnailer
-      - imagemagick
+      - ImageMagick # Исправлен регистр
       - p7zip
       - unar
       - poppler-utils
 
-      # Шрифты
-      - google-noto-sans-fonts
-      - google-noto-color-emoji-fonts
-      - jetbrains-mono-fonts
+      # Пакеты из COPR теперь найдутся без проблем:
+      - uwsm
+      - hyprlock
+      - hypridle
+      - yazi
 
+  # 3. Настройка системных служб (оставляем как у тебя)
   - type: systemd
     system:
       enabled:
