@@ -1,14 +1,10 @@
-# recipe.yml
-name: fedora-atomic-niri
-description: Минималистичный атомарный образ с фрейм-менеджером Niri, uwsm и greetd.
+# yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
+name: bluebuild-fedora-atomic-niri
+description: My custom Fedora Atomic image with Niri WM
 base-image: ghcr.io/ublue-os/minimal
-image-version: 44 # Используем актуальную версию Fedora для 2026 года
+image-version: 44
 
 modules:
-  # 1. Копирование конфигурационных файлов из папки config/ в файловую систему образа
-  - type: files
-
-  # 2. Установка всех необходимых системных RPM-пакетов
   - type: packages
     install:
       # Драйверы, Графика и Аппаратное ускорение AMD RX 6600
@@ -99,17 +95,10 @@ modules:
       - google-noto-color-emoji-fonts
       - jetbrains-mono-fonts
 
-  # 3. Активация необходимых системных служб Systemd
   - type: systemd
     system:
       enabled:
-        - firewalld
-        - NetworkManager
-        - iwd
         - greetd
-
-  # 4. Автоматическое подключение репозитория Flathub
-  - type: flatpak
-    remotes:
-      - name: flathub
-        url: https://dl.flathub.org/repo/flathub.flatpakrepo
+        - NetworkManager
+        - firewalld
+        - bluetooth
