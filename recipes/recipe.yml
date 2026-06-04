@@ -84,7 +84,13 @@ modules:
       - hypridle
       - yazi
 
-  # 3. Настройка системных служб (оставляем как у тебя)
+  # 3. Запекаем твои конфигурационные файлы из папки config/files/etc в образ
+  - type: files
+    files:
+      - source: etc
+        destination: /etc
+
+  # 4. Настройка системных служб
   - type: systemd
     system:
       enabled:
