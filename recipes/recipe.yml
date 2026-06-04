@@ -3,6 +3,7 @@ name: bluebuild-fedora-atomic-niri
 description: My custom Fedora Atomic image with Niri WM
 base-image: ghcr.io/ublue-os/minimal
 image-version: 44
+
 modules:
   - type: packages
     install:
